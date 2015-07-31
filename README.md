@@ -5,9 +5,11 @@ Handy for galleries and quiz games, where scroll view elements can be added or r
 #Usage
 You have to implement following dataSource methods in your ViewController:
 
-1) - (NSUInteger)numberOfPagesInInfPagedScrollView:(InfPagedScrollView *)infPagedScrollView
+1) `-(NSUInteger)numberOfPagesInInfPagedScrollView:(InfPagedScrollView *)infPagedScrollView`
+
 to tell InfPagedScrollView, how many elements you have.
-2) - (UIView*)infPagedScrollView:(InfPagedScrollView *)infPagedScrollView viewAtIndex:(NSUInteger)idx reusableView:(UIView *)view
+2) `- (UIView*)infPagedScrollView:(InfPagedScrollView *)infPagedScrollView viewAtIndex:(NSUInteger)idx reusableView:(UIView *)view`
+
 to setup the view, which is or soon will be visisble on the screen.
 
 #Under the hood
