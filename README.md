@@ -8,6 +8,7 @@ You have to implement following dataSource methods in your ViewController:
 1) `-(NSUInteger)numberOfPagesInInfPagedScrollView:(InfPagedScrollView *)infPagedScrollView`
 
 to tell InfPagedScrollView, how many elements you have.
+
 2) `- (UIView*)infPagedScrollView:(InfPagedScrollView *)infPagedScrollView viewAtIndex:(NSUInteger)idx reusableView:(UIView *)view`
 
 to setup the view, which is or soon will be visisble on the screen.
