@@ -10,23 +10,49 @@
 
 #import "InfPagedScrollView.h"
 
+typedef enum {
+    INF_ROTATE_DIRECTION_LEFT = 1,
+    INF_ROTATE_DIRECTION_RIGHT
+} INF_ROTATE_DIRECTION;
+
 @interface InfPagedScrollView() {
     NSUInteger _currentIndex;
+    NSUInteger _lastCurrentIndex;
 }
+
+@property (nonatomic, strong) InfHelperScrollView *_contentView;
 
 @end
 
 @implementation InfPagedScrollView
 @synthesize dataSource;
+@synthesize _contentView;
+@synthesize currentIndex;
+
+- (CGFloat)_selfWidth {
+    return CGRectGetWidth(self.bounds);
+}
+
+- (CGFloat)_selfHeight {
+    return CGRectGetHeight(self.bounds);
+}
+
+- (UIScrollView*)_contentView {
+    if (!_contentView) {
+        self._contentView = [[InfHelperScrollView alloc] initWithFrame:CGRectMake(0, 0, [self _selfWidth], [self _selfHeight])];
+        _contentView.pagingEnabled = YES;
+        _contentView.contentSize = CGSizeMake(3 * [self _selfWidth], [self _selfHeight]);
+        _contentView.contentOffset = CGPointMake([self _selfWidth], 0);
+        _contentView.showsHorizontalScrollIndicator = NO;
+        _contentView.delegate = self;
+    }
+    return _contentView;
+}
 
 - (id)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
-        self.pagingEnabled = YES;
-        self.contentSize = CGSizeMake(3 * self.frame.size.width, self.frame.size.height);
-        self.contentOffset = CGPointMake(frame.size.width, 0);
-        self.showsHorizontalScrollIndicator = NO;
-        self.delegate = self;
+        [self addSubview:self._contentView];
     }
     return self;
 }
@@ -37,96 +63,115 @@
         NSInteger idx = _currentIndex == 0 && i == -1 ? numberOfViews - 1:(_currentIndex + i) % numberOfViews;
         UIView *v = [self.dataSource infPagedScrollView:self viewAtIndex:idx reusableView:nil];
         v.tag = idx;
-        v.frame = CGRectMake(self.frame.size.width * (i + 1) + (self.frame.size.width - v.frame.size.width) * 0.5f, v.frame.origin.y, v.frame.size.width, v.frame.size.height);
-        [self _addSubview:v];
+        v.frame = CGRectMake([self _selfWidth] * (i + 1) + ([self _selfWidth] - v.bounds.size.width) * 0.5f, v.frame.origin.y, v.bounds.size.width, v.bounds.size.height);
+        [_contentView addSubview:v];
     }
 }
 
-- (void)_rotateRight {
-     NSUInteger numberOfViews = [self.dataSource numberOfPagesInInfPagedScrollView:self];
-    _currentIndex = [self.subviews.lastObject tag];
-    self.contentOffset = CGPointMake(self.frame.size.width, 0);
-    UIView *oldView = self.subviews.firstObject;
-    [oldView removeFromSuperview];
-    for (UIView *v in self.subviews) {
-        v.frame = CGRectMake(v.frame.origin.x - self.frame.size.width, v.frame.origin.y, v.frame.size.width, v.frame.size.height);
+- (void)_rotateToDirection:(INF_ROTATE_DIRECTION)direction {
+    NSUInteger numberOfViews = [self.dataSource numberOfPagesInInfPagedScrollView:self];
+    if (direction == INF_ROTATE_DIRECTION_LEFT) {
+        _currentIndex = [_contentView.subviews.firstObject tag];
+    } else if (direction == INF_ROTATE_DIRECTION_RIGHT) {
+        _currentIndex = [_contentView.subviews.lastObject tag];
     }
-    oldView = [self.dataSource infPagedScrollView:self viewAtIndex:(_currentIndex + 1) % numberOfViews reusableView:oldView];
-    oldView.frame = CGRectMake(self.frame.size.width * 2 + (self.frame.size.width - oldView.frame.size.width) * 0.5f, oldView.frame.origin.y, oldView.frame.size.width, oldView.frame.size.height);
+    _contentView.contentOffset = CGPointMake([self _selfWidth], 0);
+    UIView *oldView = nil;
+    if (direction == INF_ROTATE_DIRECTION_LEFT) {
+        oldView = _contentView.subviews.lastObject;
+    } else if (direction == INF_ROTATE_DIRECTION_RIGHT) {
+        oldView = _contentView.subviews.firstObject;
+    }
+    [oldView removeFromSuperview];
+    for (UIView *v in _contentView.subviews) {
+        v.frame = CGRectMake(v.frame.origin.x - [self _selfWidth] * (direction == INF_ROTATE_DIRECTION_RIGHT) + [self _selfWidth] * (direction == INF_ROTATE_DIRECTION_LEFT), v.frame.origin.y, v.bounds.size.width, v.bounds.size.height);
+    }
+    NSUInteger newIndex = 0;
+    if (direction == INF_ROTATE_DIRECTION_LEFT) {
+        newIndex = _currentIndex == 0 ? numberOfViews - 1 : _currentIndex - 1;
+    } else if (direction == INF_ROTATE_DIRECTION_RIGHT) {
+        newIndex = (_currentIndex + 1) % numberOfViews;
+    }
+    oldView = [self.dataSource infPagedScrollView:self viewAtIndex:newIndex reusableView:oldView];
+    oldView.tag = newIndex;
+    oldView.frame = CGRectMake([self _selfWidth] * 2 * (INF_ROTATE_DIRECTION_RIGHT == direction) + ([self _selfWidth] - oldView.bounds.size.width) * 0.5f, oldView.frame.origin.y, oldView.bounds.size.width, oldView.bounds.size.height);
     oldView.tag = (_currentIndex + 1) % numberOfViews;
-    [self _addSubview:oldView];
+    [_contentView addSubview:oldView];
 }
 
-- (void)_rotateLeft {
-     NSUInteger numberOfViews = [self.dataSource numberOfPagesInInfPagedScrollView:self];
-    _currentIndex = [self.subviews.firstObject tag];
-    self.contentOffset = CGPointMake(self.frame.size.width, 0);
-    UIView *oldView = self.subviews.lastObject;
-    [oldView removeFromSuperview];
-    for (UIView *v in self.subviews) {
-        v.frame = CGRectMake(v.frame.origin.x + self.frame.size.width, v.frame.origin.y, v.frame.size.width, v.frame.size.height);
-    }
-    oldView = [self.dataSource infPagedScrollView:self viewAtIndex:_currentIndex == 0 ? numberOfViews - 1 : _currentIndex - 1 reusableView:oldView];
-    oldView.tag = _currentIndex == 0 ? numberOfViews - 1: _currentIndex - 1;
-    oldView.frame = CGRectMake((self.frame.size.width - oldView.frame.size.width) * 0.5f, oldView.frame.origin.y, oldView.frame.size.width, oldView.frame.size.height);
-    [self insertSubview:oldView atIndex:0];
-}
 
 - (void)_rotateSubviews {
-    CGFloat offsetX = self.contentOffset.x;
-    if (offsetX - self.frame.size.width * 2 > 0) {
-        [self _rotateRight];
+    CGFloat offsetX = _contentView.contentOffset.x;
+    if (offsetX - [self _selfWidth] * 2 > 0) {
+        [self _rotateToDirection:INF_ROTATE_DIRECTION_RIGHT];
     } else if (offsetX < 0) {
-        [self _rotateLeft];
+        [self _rotateToDirection:INF_ROTATE_DIRECTION_LEFT];
     } else {
         // scroll to next page not finished yet. Doing nothing
     }
 }
 
-- (void)layoutSubviews {
-    [super layoutSubviews];
+- (void)scrollViewLayoutSubviews:(InfHelperScrollView *)scrollView {
      NSUInteger numberOfViews = [self.dataSource numberOfPagesInInfPagedScrollView:self];
     if (numberOfViews > 0) {
-        if (!self.subviews.count) {
+        if (!_contentView.subviews.count) {
             [self _initViews];
         } else {
             [self _rotateSubviews];
         }
 
         if (numberOfViews == 1) {
-            self.scrollEnabled = NO;
+            _contentView.scrollEnabled = NO;
         } else {
             // lock scrolling if only element left to avoid scrolling to self
-            self.scrollEnabled = YES;
+            _contentView.scrollEnabled = YES;
         }
     }
 }
 
 
-- (void)addSubview:(UIView *)view {
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+    if (_lastCurrentIndex != [self currentIndex]) {
+        [self sendActionsForControlEvents:UIControlEventValueChanged];
+    }
 }
 
-- (void)_addSubview:(UIView*)view {
-    [super addSubview:view];
-}
-
-- (void)reloadData {
-    for (UIView *v in self.subviews) {
+- (void)_reloadData {
+    for (UIView *v in _contentView.subviews) {
         [v removeFromSuperview];
     }
     NSUInteger numberOfPages = [self.dataSource numberOfPagesInInfPagedScrollView:self];
-    if (_currentIndex >= numberOfPages)
+    if (_currentIndex >= numberOfPages) {
         _currentIndex = 0;
-    [self layoutSubviews];
+    }
+    [_contentView layoutSubviews];
+}
+
+- (void)reloadData {
+    [self _reloadData];
+    if (_lastCurrentIndex != [self currentIndex]) {
+        [self sendActionsForControlEvents:UIControlEventValueChanged];
+    }
 }
 
 - (NSUInteger)currentIndex {
-    for (UIView *subview in self.subviews) {
-        if (subview.frame.origin.x - self.contentOffset.x < self.frame.size.width * 0.5f && subview.frame.origin.x - self.contentOffset.x > 0) {
+    for (UIView *subview in _contentView.subviews) {
+        if (subview.frame.origin.x - _contentView.contentOffset.x < [self _selfWidth] * 0.5f && subview.frame.origin.x - _contentView.contentOffset.x > 0) {
+            _lastCurrentIndex = subview.tag;
             return subview.tag;
         }
     }
     return 0;
+}
+
+- (void)setCurrentIndex:(NSUInteger)aCurrentIndex {
+    _currentIndex = aCurrentIndex;
+    [self _reloadData];
+    _lastCurrentIndex = _currentIndex;
+}
+
+- (NSArray*)allObjects {
+    return _contentView.subviews;
 }
 
 @end

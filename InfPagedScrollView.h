@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "InfHelperScrollView.h"
 
 @class InfPagedScrollView;
 
@@ -17,10 +18,12 @@
 
 @end
 
-@interface InfPagedScrollView : UIScrollView<UIScrollViewDelegate>
+@interface InfPagedScrollView : UIControl<UIScrollViewDelegate, InfHelperScrollViewDelegate>
+
+@property (nonatomic, assign) NSUInteger currentIndex;
 
 - (void)reloadData;
-- (NSUInteger)currentIndex;
+- (NSArray*)allObjects;
 
 @property (nonatomic, weak) id<InfPagedScrollViewDataSource> dataSource;
 

@@ -16,11 +16,11 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "InfPagedScrollView"
-  s.version      = "1.0.0"
-  s.summary      = "Infinit ScrollView With Paging and reloadData capability"
+  s.version      = "1.1.0"
+  s.summary      = "Infinite ScrollView With Paging and reloadData capability"
 
   s.description  = <<-DESC
-    Infinit ScrollView With Paging and reloadData capability
+    Infinite ScrollView With Paging and reloadData capability. Can be used for quizes, memory games and so on.
                    DESC
 
   s.homepage     = "https://github.com/yury-dymov/InfPagedScrollView"
@@ -48,9 +48,7 @@ Pod::Spec.new do |s|
   #  profile URL.
   #
 
-  s.author             = { "Yury Dymov" => "yuri@dymov.me" }
-  # Or just: s.author    = "Yuri Dymov"
-  # s.authors            = { "Yuri Dymov" => "yuri@dymov.me" }
+  s.author             = { "Yury Dymov" => "yury@dymov.me" }
   # s.social_media_url   = "http://twitter.com/Yuri Dymov"
 
   # ――― Platform Specifics ――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
@@ -59,7 +57,7 @@ Pod::Spec.new do |s|
   #  the deployment target. You can optionally include the target after the platform.
   #
 
-   s.platform     = :ios
+   s.platform     = :ios, "6.0"
   # s.platform     = :ios, "5.0"
 
   #  When using multiple platforms
@@ -73,7 +71,7 @@ Pod::Spec.new do |s|
   #  Supports git, hg, bzr, svn and HTTP.
   #
 
-  s.source       = { :git => "https://github.com/yury-dymov/InfPagedScrollView.git", :tag => "1.0.0" }
+  s.source       = { :git => "https://github.com/yury-dymov/InfPagedScrollView.git", :tag => "1.1.0" }
 
 
   # ――― Source Code ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
@@ -84,7 +82,7 @@ Pod::Spec.new do |s|
   #  Not including the public_header_files will make all headers public.
   #
 
-  s.source_files  = "Classes", "Classes/**/*.{h,m}"
+  s.source_files  = "*.{h,m}"
   s.exclude_files = "Classes/Exclude"
 
   # s.public_header_files = "Classes/**/*.h"
