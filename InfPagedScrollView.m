@@ -75,7 +75,7 @@ typedef enum {
     } else if (direction == INF_ROTATE_DIRECTION_RIGHT) {
         _currentIndex = [_contentView.subviews.lastObject tag];
     }
-    _contentView.contentOffset = CGPointMake([self _selfWidth], 0);
+
     UIView *oldView = nil;
     if (direction == INF_ROTATE_DIRECTION_LEFT) {
         oldView = _contentView.subviews.lastObject;
@@ -95,8 +95,12 @@ typedef enum {
     oldView = [self.dataSource infPagedScrollView:self viewAtIndex:newIndex reusableView:oldView];
     oldView.tag = newIndex;
     oldView.frame = CGRectMake([self _selfWidth] * 2 * (INF_ROTATE_DIRECTION_RIGHT == direction) + ([self _selfWidth] - oldView.bounds.size.width) * 0.5f, oldView.frame.origin.y, oldView.bounds.size.width, oldView.bounds.size.height);
-    oldView.tag = (_currentIndex + 1) % numberOfViews;
-    [_contentView addSubview:oldView];
+    if (direction == INF_ROTATE_DIRECTION_RIGHT)
+        [_contentView addSubview:oldView];
+    else
+        [_contentView insertSubview:oldView atIndex:0];
+
+    _contentView.contentOffset = CGPointMake([self _selfWidth], 0);
 }
 
 
